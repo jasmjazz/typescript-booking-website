@@ -7,5 +7,14 @@
     {
       "path": "./tsconfig.app.json"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true
+  }
 }
