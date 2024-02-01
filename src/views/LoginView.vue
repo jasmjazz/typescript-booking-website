@@ -11,24 +11,8 @@
       </div>
       <div class="form-wrap">
         <div class="form-inner">
-          <div class="sub-title" :style="{ display: show ? 'block' : 'none' }">
-            享樂酒店，誠摯歡迎
-          </div>
-          <div class="form-title">立即註冊</div>
-          <div class="steps">
-            <div class="step fill">
-              <div class="status">
-                <template v-if="currentStep === 1">1</template>
-                <template v-else>✓</template>
-              </div>
-              <div class="text">輸入信箱及密碼</div>
-            </div>
-            <div class="line"></div>
-            <div class="step" :class="{ fill: currentStep === 2 }">
-              <div class="status">2</div>
-              <div class="text">填寫基本資料</div>
-            </div>
-          </div>
+          <div class="sub-title">享樂酒店，誠摯歡迎</div>
+          <div class="form-title">立即開始旅程</div>
 
           <form class="form" action="">
             <template v-if="currentStep === 1">
@@ -36,58 +20,15 @@
               <input type="text" placeholder="hello@exsample.com" />
               <label for="">密碼</label>
               <input type="text" placeholder="請輸入密碼" />
-              <label for="">確認密碼</label>
-              <input type="text" placeholder="請再輸入一次密碼" />
-
-              <button
-                class="btn gray"
-                @click="
-                  currentStep = 2;
-                  show = false;
-                "
-              >
-                下一步
-              </button>
-            </template>
-
-            <template v-if="currentStep === 2">
-              <label for="">姓名</label>
-              <input type="text" placeholder="請輸入姓名" />
-              <label for="">手機號碼</label>
-              <input type="text" placeholder="請輸入手機號碼" />
-              <label for="">生日</label>
-              <div class="flex">
-                <select name="" id="">
-                  <option value="1990年" selected></option>
-                </select>
-                <select name="" id="">
-                  <option value="8月" selected></option>
-                </select>
-                <select name="" id="">
-                  <option value="15日" selected></option>
-                </select>
+              <div style="margin-top: 20px; margin-bottom: 10px">
+                <input type="checkbox" />
+                <span class="remember-account"> 記住帳號 </span>
               </div>
 
-              <label for="">地址</label>
-              <div class="flex">
-                <select name="" id="">
-                  <option value="高雄市" selected></option>
-                </select>
-                <select name="" id="">
-                  <option value="新興區" selected></option>
-                </select>
-              </div>
-
-              <input type="text" placeholder="請輸入詳細地址" />
-
-              <label for="" class="read"
-                ><input type="checkbox" /> 我已閱讀並同意本站使用規範</label
-              >
-
-              <button class="btn yellow">完成註冊</button>
+              <button class="btn yellow">會員登入</button>
             </template>
 
-            <div class="has-account">已經有會員了嗎？ <span @click="changePage"> 立即登入</span></div>
+            <div class="has-account">沒有會員嗎？ <span @click="changePage"> 立即註冊</span></div>
           </form>
         </div>
       </div>
@@ -102,23 +43,10 @@ import { useRouter } from 'vue-router'
 const router = useRouter();
 
 const currentStep = ref<number>(1);
-const show = ref<boolean>(true);
 
 function changePage() {
-  router.push({ name: "login" });
+  router.push({ name: "register" });
 }
-
-// export default defineComponent({
-  
-//   components: {},
-//   setup() {
-//     const currentStep = ref(1);
-
-//     const show = ref<boolean>(true);
-
-//     return { currentStep, show };
-//   },
-// });
 </script>
 
 <style lang="scss">
@@ -274,8 +202,12 @@ function changePage() {
           color: #fff;
         }
       }
-
       .read {
+        color: #fff;
+      }
+
+      .remember-account {
+        font-size: 0.7em;
         color: #fff;
       }
 
