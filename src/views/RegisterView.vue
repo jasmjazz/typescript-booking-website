@@ -1,7 +1,7 @@
 <template>
   <div class="register-page">
     <nav class="top-nav">
-      <div class="logo">
+      <div class="logo" @click="homepage">
         <img src="@/assets/img/logo.png" alt="" />
       </div>
     </nav>
@@ -108,17 +108,9 @@ function changePage() {
   router.push({ name: "login" });
 }
 
-// export default defineComponent({
-  
-//   components: {},
-//   setup() {
-//     const currentStep = ref(1);
-
-//     const show = ref<boolean>(true);
-
-//     return { currentStep, show };
-//   },
-// });
+function homepage() {
+  router.push({ name: "home" });
+}
 </script>
 
 <style lang="scss">

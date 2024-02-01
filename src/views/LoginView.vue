@@ -1,7 +1,7 @@
 <template>
   <div class="register-page">
     <nav class="top-nav">
-      <div class="logo">
+      <div class="logo" @click="homepage">
         <img src="@/assets/img/logo.png" alt="" />
       </div>
     </nav>
@@ -46,6 +46,10 @@ const currentStep = ref<number>(1);
 
 function changePage() {
   router.push({ name: "register" });
+}
+
+function homepage() {
+  router.push({ name: "home" });
 }
 </script>
 
