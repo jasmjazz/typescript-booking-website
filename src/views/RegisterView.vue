@@ -32,62 +32,124 @@
 
           <form class="form" action="">
             <template v-if="currentStep === 1">
-              <label for="">電子信箱</label>
-              <input type="text" placeholder="hello@exsample.com" />
-              <label for="">密碼</label>
-              <input type="text" placeholder="請輸入密碼" />
-              <label for="">確認密碼</label>
-              <input type="text" placeholder="請再輸入一次密碼" />
-
+              <n-form ref="formRef" :model="user" :rules="userRules">
+                <n-form-item label="電子信箱" path="email">
+                  <n-input
+                    v-model:value="user.email"
+                    maxlength="50"
+                    clearable
+                    placeholder="請輸入信箱"
+                  />
+                </n-form-item>
+                <template v-if="verifyStatus">
+                  <n-form-item label="密碼" path="password">
+                    <n-input
+                      v-model:value="user.password"
+                      type="password"
+                      maxlength="50"
+                      clearable
+                      placeholder="請輸入密碼"
+                    />
+                  </n-form-item>
+                  <n-form-item label="確認密碼" path="confirm" style="margin-bottom: 20px">
+                    <n-input
+                      v-model:value="user.confirm"
+                      type="password"
+                      maxlength="50"
+                      clearable
+                      placeholder="請再次輸入密碼"
+                    />
+                  </n-form-item>
+                </template>
+              </n-form>
               <button
-                class="btn gray"
-                @click="
-                  currentStep = 2;
-                  show = false;
-                "
+                v-if="!verifyStatus"
+                type="button"
+                class="btn yellow"
+                @click.prevent="verifyEmail"
               >
+                驗證
+              </button>
+              <button v-else type="button" class="btn gray" @click.prevent="nextStep">
                 下一步
               </button>
             </template>
 
             <template v-if="currentStep === 2">
-              <label for="">姓名</label>
-              <input type="text" placeholder="請輸入姓名" />
-              <label for="">手機號碼</label>
-              <input type="text" placeholder="請輸入手機號碼" />
-              <label for="">生日</label>
-              <div class="flex">
-                <select name="" id="">
-                  <option value="1990年" selected></option>
-                </select>
-                <select name="" id="">
-                  <option value="8月" selected></option>
-                </select>
-                <select name="" id="">
-                  <option value="15日" selected></option>
-                </select>
-              </div>
+              <n-form ref="formRef" :model="user" :rules="userRules">
+                <n-form-item label="姓名" path="name">
+                  <n-input
+                    v-model:value="user.name"
+                    type="text"
+                    maxlength="50"
+                    clearable
+                    placeholder="請輸入姓名"
+                  />
+                </n-form-item>
+                <n-form-item label="手機號碼" path="phone">
+                  <n-input
+                    v-model:value="user.phone"
+                    type="text"
+                    maxlength="50"
+                    clearable
+                    placeholder="請輸入手機號碼"
+                  />
+                </n-form-item>
+                <n-form-item label="生日" path="birthday">
+                  <n-date-picker
+                    style="width: 100%"
+                    v-model:formatted-value="user.birthday"
+                    type="date"
+                    clearable
+                    placeholder="請選擇日期"
+                  />
+                </n-form-item>
+                <n-grid x-gap="12" :cols="2">
+                  <n-gi>
+                    <n-form-item label="縣市" path="city">
+                      <n-select
+                        size="large"
+                        filterable
+                        clearable
+                        v-model:value="user.city"
+                        placeholder="請選擇縣市"
+                      />
+                    </n-form-item>
+                  </n-gi>
+                  <n-gi>
+                    <n-form-item label="行政區" path="district">
+                      <n-select
+                        size="large"
+                        filterable
+                        clearable
+                        v-model:value="user.district"
+                        placeholder="請選擇行政區"
+                      />
+                    </n-form-item>
+                  </n-gi>
+                </n-grid>
 
-              <label for="">地址</label>
-              <div class="flex">
-                <select name="" id="">
-                  <option value="高雄市" selected></option>
-                </select>
-                <select name="" id="">
-                  <option value="新興區" selected></option>
-                </select>
-              </div>
+                <n-form-item label="地址" path="address">
+                  <n-input
+                    v-model:value="user.address"
+                    type="text"
+                    maxlength="200"
+                    clearable
+                    placeholder="請輸入地址"
+                  />
+                </n-form-item>
 
-              <input type="text" placeholder="請輸入詳細地址" />
+                <label for="" class="read"
+                  ><input type="checkbox" /> 我已閱讀並同意本站使用規範</label
+                >
 
-              <label for="" class="read"
-                ><input type="checkbox" /> 我已閱讀並同意本站使用規範</label
-              >
-
-              <button class="btn yellow">完成註冊</button>
+                <button class="btn yellow">完成註冊</button>
+              </n-form>
             </template>
 
-            <div class="has-account">已經有會員了嗎？ <span @click="changePage"> 立即登入</span></div>
+            <div class="has-account">
+              已經有會員了嗎？ <span @click="changePage"> 立即登入</span>
+            </div>
           </form>
         </div>
       </div>
@@ -96,21 +158,109 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from 'vue'
+import { useNotification, type FormInst, type FormItemRule } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { apiVerifyEmail } from '@/api/user/register'
+import districtData from '@/assets/data/taiwan_districts.json'
 
-const router = useRouter();
+const notification = useNotification()
+const router = useRouter()
 
-const currentStep = ref<number>(1);
-const show = ref<boolean>(true);
+type User = {
+  email: string
+  password: string
+  confirm: string
+  name: string
+  phone: string
+  birthday: string | null
+  city: string | null
+  district: string | null
+  address: string
+}
+
+const currentStep = ref<number>(2)
+const show = ref<boolean>(true)
+const verifyStatus = ref<boolean>(false)
+const user = ref<User>({
+  email: '',
+  password: '',
+  confirm: '',
+  name: '',
+  phone: '',
+  birthday: null,
+  city: null,
+  district: null,
+  address: ''
+})
+
+// 驗證信箱
+function verifyEmail() {
+  formRef.value.validate((errors) => {
+    if (errors) {
+      return
+    }
+    apiVerifyEmail({ email: user.value.email }).then((response: any) => {
+      if (response.status === 200) {
+        console.log(response)
+        if (response.data.status) {
+          verifyStatus.value = true
+          notification.success({
+            content: '驗證成功',
+            meta: '此信箱可使用',
+            duration: 2500
+          })
+        }
+      }
+    })
+  })
+}
+
+// 下一步
+function nextStep() {
+  formRef.value.validate((errors) => {
+    if (errors) {
+      return
+    }
+    currentStep.value = 2
+    show.value = false
+  })
+}
 
 function changePage() {
-  router.push({ name: "login" });
+  router.push({ name: 'login' })
 }
 
 function homepage() {
-  router.push({ name: "home" });
+  router.push({ name: 'home' })
 }
+
+// 欄位驗證
+const formRef = ref<FormInst | null>()
+const userRules = ref({
+  email: { required: true, message: '必填', trigger: ['input', 'blur'] },
+  password: {
+    required: true,
+    message: '必填',
+    trigger: ['input', 'blur']
+  },
+  confirm: {
+    required: true,
+    validator(rule: FormItemRule, value: string) {
+      if (!value) {
+        return new Error('必填')
+      } else if (value !== user.value.password) {
+        return new Error('密碼不一致')
+      }
+      return true
+    },
+    trigger: ['input', 'blur']
+  }
+})
+
+onMounted(() => {
+  console.log(districtData)
+})
 </script>
 
 <style lang="scss">
@@ -138,8 +288,7 @@ function homepage() {
     flex: 1;
     min-height: 1px;
     display: flex;
-
-    overflow: auto;
+    // overflow: auto;
 
     .img-wrap {
       width: 50%;
@@ -156,7 +305,7 @@ function homepage() {
   }
   .form-wrap {
     flex: 1;
-    background-image: url("@/assets/img/line2.png");
+    background-image: url('@/assets/img/line2.png');
     background-repeat: no-repeat;
     background-size: 100% auto;
 
@@ -222,21 +371,20 @@ function homepage() {
       label {
         color: #fff;
         font-size: 0.8em;
-        margin-top: 20px;
+        // margin-top: 20px;
         display: block;
-        margin-bottom: 10px;
+        // margin-bottom: 10px;
       }
-      input:not([type="checkbox"]),
+      input:not([type='checkbox']),
       select {
         background-color: #fff;
-        line-height: 45px;
-        height: 45px;
+        line-height: 40px;
+        height: 40px;
         border-radius: 5px;
-        padding: 0 15px;
         display: block;
         border: none;
         width: 100%;
-        margin-bottom: 5px;
+        // margin-bottom: 5px;
       }
 
       .flex {
@@ -254,13 +402,12 @@ function homepage() {
         background-color: #ccc;
         border: none;
         display: block;
-        height: 45px;
-        line-height: 45px;
+        height: 40px;
+        line-height: 40px;
         border-radius: 5px;
         padding: 0;
-        margin-top: 30px;
         cursor: pointer;
-
+        margin-top: 25px;
         &.yellow {
           background-color: #bf9d7d;
           color: #fff;

@@ -11,13 +11,7 @@ const errorHandle = (status: any, msg: string) => {
   switch (status) {
     // 400: 程式邏輯錯誤
     case 400:
-      // let { ErrorMessage } = msg;
-      if (msg) {
-        tip(msg)
-      } else {
-        tip(msg)
-      }
-
+      tip(msg)
       break
 
     // 401: token 過期
@@ -45,10 +39,9 @@ const errorHandle = (status: any, msg: string) => {
   }
 }
 
-const data: any = window
 //  axios 實例
 const instance: AxiosInstance = axios.create({
-  baseURL: data.endpoints.api,
+  baseURL: 'https://freyja-kbcp.onrender.com/',
   timeout: 300000
 })
 

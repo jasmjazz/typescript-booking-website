@@ -37,19 +37,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-const router = useRouter();
+const router = useRouter()
 
-const currentStep = ref<number>(1);
+const currentStep = ref<number>(1)
 
 function changePage() {
-  router.push({ name: "register" });
+  router.push({ name: 'register' })
 }
 
 function homepage() {
-  router.push({ name: "home" });
+  router.push({ name: 'home' })
 }
 </script>
 
@@ -79,7 +79,7 @@ function homepage() {
     min-height: 1px;
     display: flex;
 
-    overflow: auto;
+    // overflow: auto;
 
     .img-wrap {
       width: 50%;
@@ -96,7 +96,7 @@ function homepage() {
   }
   .form-wrap {
     flex: 1;
-    background-image: url("@/assets/img/line2.png");
+    background-image: url('@/assets/img/line2.png');
     background-repeat: no-repeat;
     background-size: 100% auto;
 
@@ -166,7 +166,7 @@ function homepage() {
         display: block;
         margin-bottom: 10px;
       }
-      input:not([type="checkbox"]),
+      input:not([type='checkbox']),
       select {
         background-color: #fff;
         line-height: 45px;
