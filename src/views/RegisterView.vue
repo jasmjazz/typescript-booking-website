@@ -1,19 +1,17 @@
 <template>
   <div class="register-page">
     <nav class="top-nav">
-      <div class="logo" @click="homepage">
+      <div class="logo" @click="router.push({ name: 'home' })">
         <img src="@/assets/img/logo.png" alt="" />
       </div>
     </nav>
+
     <div class="content-wrap">
       <div class="img-wrap">
         <img src="@/assets/img/register.png" alt="" />
       </div>
       <div class="form-wrap">
         <div class="form-inner">
-          <div class="sub-title" :style="{ display: show ? 'block' : 'none' }">
-            享樂酒店，誠摯歡迎
-          </div>
           <div class="form-title">立即註冊</div>
           <div class="steps">
             <div class="step fill">
@@ -36,6 +34,7 @@
                 <n-form-item label="電子信箱" path="email">
                   <n-input
                     v-model:value="user.email"
+                    size="large"
                     maxlength="50"
                     clearable
                     placeholder="請輸入信箱"
@@ -46,16 +45,18 @@
                     <n-input
                       v-model:value="user.password"
                       type="password"
-                      maxlength="50"
+                      size="large"
+                      maxlength="20"
                       clearable
                       placeholder="請輸入密碼"
                     />
                   </n-form-item>
-                  <n-form-item label="確認密碼" path="confirm" style="margin-bottom: 20px">
+                  <n-form-item label="確認密碼" path="confirm">
                     <n-input
                       v-model:value="user.confirm"
                       type="password"
-                      maxlength="50"
+                      size="large"
+                      maxlength="20"
                       clearable
                       placeholder="請再次輸入密碼"
                     />
@@ -66,11 +67,18 @@
                 v-if="!verifyStatus"
                 type="button"
                 class="btn yellow"
+                style="margin-top: 20px"
                 @click.prevent="verifyEmail"
               >
                 驗證
               </button>
-              <button v-else type="button" class="btn gray" @click.prevent="nextStep">
+              <button
+                v-else
+                type="button"
+                class="btn gray"
+                style="margin-top: 20px"
+                @click.prevent="nextStep"
+              >
                 下一步
               </button>
             </template>
@@ -81,6 +89,7 @@
                   <n-input
                     v-model:value="user.name"
                     type="text"
+                    size="large"
                     maxlength="50"
                     clearable
                     placeholder="請輸入姓名"
@@ -90,65 +99,58 @@
                   <n-input
                     v-model:value="user.phone"
                     type="text"
-                    maxlength="50"
+                    size="large"
+                    maxlength="10"
                     clearable
                     placeholder="請輸入手機號碼"
                   />
                 </n-form-item>
                 <n-form-item label="生日" path="birthday">
                   <n-date-picker
-                    style="width: 100%"
                     v-model:formatted-value="user.birthday"
+                    :is-date-disabled="disablePreviousDate"
+                    style="width: 100%"
                     type="date"
+                    size="large"
                     clearable
                     placeholder="請選擇日期"
                   />
                 </n-form-item>
-                <n-grid x-gap="12" :cols="2">
-                  <n-gi>
-                    <n-form-item label="縣市" path="city">
-                      <n-select
-                        size="large"
-                        filterable
-                        clearable
-                        v-model:value="user.city"
-                        placeholder="請選擇縣市"
-                      />
-                    </n-form-item>
-                  </n-gi>
-                  <n-gi>
-                    <n-form-item label="行政區" path="district">
-                      <n-select
-                        size="large"
-                        filterable
-                        clearable
-                        v-model:value="user.district"
-                        placeholder="請選擇行政區"
-                      />
-                    </n-form-item>
-                  </n-gi>
-                </n-grid>
+                <n-form-item label="縣市／區" path="zipcode">
+                  <n-tree-select
+                    v-model:value="user.zipcode"
+                    :show-path="true"
+                    :options="districtOptions"
+                    label-field="name"
+                    key-field="guid"
+                    check-strategy="child"
+                    size="large"
+                    filterable
+                    clearable
+                  />
+                </n-form-item>
 
-                <n-form-item label="地址" path="address">
+                <n-form-item label="地址" path="detail">
                   <n-input
-                    v-model:value="user.address"
+                    v-model:value="user.detail"
                     type="text"
+                    size="large"
                     maxlength="200"
                     clearable
                     placeholder="請輸入地址"
                   />
                 </n-form-item>
 
-                <label for="" class="read"
-                  ><input type="checkbox" /> 我已閱讀並同意本站使用規範</label
-                >
-
-                <button class="btn yellow">完成註冊</button>
+                <n-form-item path="agree">
+                  <n-checkbox v-model:checked="user.agree"> 我已閱讀並同意本站使用規範 </n-checkbox>
+                </n-form-item>
               </n-form>
+
+              <button type="button" class="btn yellow" @click.prevent="signIn">完成註冊</button>
             </template>
 
             <div class="has-account">
-              已經有會員了嗎？ <span @click="changePage"> 立即登入</span>
+              已經有會員了嗎？ <span @click="loginPage"> 立即登入</span>
             </div>
           </form>
         </div>
@@ -161,7 +163,7 @@
 import { onMounted, ref } from 'vue'
 import { useNotification, type FormInst, type FormItemRule } from 'naive-ui'
 import { useRouter } from 'vue-router'
-import { apiVerifyEmail } from '@/api/user/register'
+import { apiVerifyEmail, apiSignUp } from '@/api/user/register'
 import districtData from '@/assets/data/taiwan_districts.json'
 
 const notification = useNotification()
@@ -174,14 +176,24 @@ type User = {
   name: string
   phone: string
   birthday: string | null
-  city: string | null
-  district: string | null
-  address: string
+  zipcode: string | null
+  detail: string
+  agree: boolean
 }
 
-const currentStep = ref<number>(2)
-const show = ref<boolean>(true)
+type District = {
+  guid: string
+  name: string
+  children: {
+    guid: number
+    name: string
+  }[]
+}
+
+const currentStep = ref<number>(1)
 const verifyStatus = ref<boolean>(false)
+let districtOptions: District[] = []
+
 const user = ref<User>({
   email: '',
   password: '',
@@ -189,27 +201,63 @@ const user = ref<User>({
   name: '',
   phone: '',
   birthday: null,
-  city: null,
-  district: null,
-  address: ''
+  zipcode: null,
+  detail: '',
+  agree: false
 })
 
 // 驗證信箱
 function verifyEmail() {
-  formRef.value.validate((errors) => {
+  formRef.value?.validate((errors) => {
     if (errors) {
       return
     }
     apiVerifyEmail({ email: user.value.email }).then((response: any) => {
       if (response.status === 200) {
-        console.log(response)
+        if (response.data.result.isEmailExists) {
+          notification.error({
+            content: '失敗',
+            meta: '此信箱已存在',
+            duration: 3500
+          })
+          return
+        }
+        verifyStatus.value = true
+        notification.success({
+          content: '成功',
+          meta: '此信箱可註冊',
+          duration: 2500
+        })
+      }
+    })
+  })
+}
+
+// 註冊
+function signIn() {
+  formRef.value?.validate((errors) => {
+    if (errors) {
+      return
+    }
+    apiSignUp({
+      name: user.value.name,
+      email: user.value.email,
+      password: user.value.password,
+      phone: user.value.phone,
+      birthday: user.value.birthday,
+      address: {
+        zipcode: user.value.zipcode,
+        detail: user.value.detail
+      }
+    }).then((response: any) => {
+      if (response.status === 200) {
         if (response.data.status) {
-          verifyStatus.value = true
           notification.success({
-            content: '驗證成功',
-            meta: '此信箱可使用',
+            content: '成功',
+            meta: '註冊成功',
             duration: 2500
           })
+          loginPage()
         }
       }
     })
@@ -218,31 +266,39 @@ function verifyEmail() {
 
 // 下一步
 function nextStep() {
-  formRef.value.validate((errors) => {
+  formRef.value?.validate((errors) => {
     if (errors) {
       return
     }
     currentStep.value = 2
-    show.value = false
   })
 }
 
-function changePage() {
+function loginPage() {
   router.push({ name: 'login' })
 }
 
-function homepage() {
-  router.push({ name: 'home' })
-}
-
 // 欄位驗證
-const formRef = ref<FormInst | null>()
+const formRef = ref<FormInst | null>(null)
 const userRules = ref({
-  email: { required: true, message: '必填', trigger: ['input', 'blur'] },
+  email: { type: 'email', required: true, message: '格式不正確', trigger: ['input', 'blur'] },
   password: {
     required: true,
-    message: '必填',
-    trigger: ['input', 'blur']
+    trigger: ['input', 'blur'],
+    validator(rule: FormItemRule, value: string) {
+      if (!value) {
+        return new Error('必填')
+      }
+      if (!/^[a-z0-9]+$/.test(value)) {
+        return new Error('僅能輸入英文字母及數字')
+      }
+      if (!/^(?=.*[a-z])/.test(value)) {
+        return new Error('至少要有一個小寫英文字母')
+      }
+      if (value.length < 8) {
+        return new Error('長度需大於等於8')
+      }
+    }
   },
   confirm: {
     required: true,
@@ -252,183 +308,61 @@ const userRules = ref({
       } else if (value !== user.value.password) {
         return new Error('密碼不一致')
       }
-      return true
+      return
     },
     trigger: ['input', 'blur']
+  },
+  name: { required: true, message: '必填', trigger: ['input', 'blur'] },
+  phone: {
+    required: true,
+    trigger: ['input', 'blur'],
+    validator(rule: FormItemRule, value: string) {
+      if (!value) {
+        return new Error('必填')
+      }
+      if (!/^[0-9]+$/.test(value)) {
+        return new Error('僅能輸入數字')
+      }
+      if (value.length < 10) {
+        return new Error('長度不正確')
+      }
+    }
+  },
+  birthday: { required: true, message: '必填', trigger: ['input', 'blur'] },
+  zipcode: { type: 'number', required: true, message: '必填', trigger: ['input', 'blur'] },
+  detail: { required: true, message: '必填', trigger: ['input', 'blur'] },
+  agree: {
+    required: true,
+    trigger: ['input', 'blur'],
+    validator(rule: FormItemRule, value: boolean) {
+      if (!value) {
+        return new Error('請勾選')
+      }
+    }
   }
 })
 
+function disablePreviousDate(ts: number) {
+  return ts > Date.now()
+}
+
 onMounted(() => {
-  console.log(districtData)
+  districtOptions = districtData.map((city) => ({
+    guid: city.name,
+    name: city.name,
+    children: city.districts.map((district) => ({
+      guid: parseInt(district.zip),
+      name: district.name
+    }))
+  }))
 })
 </script>
 
-<style lang="scss">
-.register-page {
-  display: flex;
-  flex-direction: column;
-  background-color: #000;
-  height: 100vh;
-  overflow: hidden;
-
-  .top-nav {
-    z-index: 99;
-    padding: 10px;
-    .logo {
-      img {
-        width: 200px;
-
-        @media screen and (max-width: 850px) {
-          width: 150px;
-        }
-      }
-    }
-  }
-  .content-wrap {
-    flex: 1;
-    min-height: 1px;
-    display: flex;
-    // overflow: auto;
-
-    .img-wrap {
-      width: 50%;
-
-      @media screen and (max-width: 850px) {
-        display: none;
-      }
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    }
-  }
-  .form-wrap {
-    flex: 1;
-    background-image: url('@/assets/img/line2.png');
-    background-repeat: no-repeat;
-    background-size: 100% auto;
-
-    .sub-title {
-      color: #bf9d7d;
-      font-size: 0.7em;
-      margin-bottom: 5px;
-    }
-
-    .form-title {
-      color: #fff;
-      font-weight: 700;
-      font-size: 38px;
-      margin-bottom: 20px;
-      @media screen and (max-width: 850px) {
-        font-size: 30px;
-      }
-    }
-    .form-inner {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 10px;
-    }
-    .steps {
-      display: flex;
-      align-items: center;
-      margin-bottom: 40px;
-      .step {
-        text-align: center;
-        opacity: 0.8;
-        .status {
-          width: 30px;
-          height: 30px;
-          line-height: 30px;
-          text-align: center;
-          border: 1px solid #fff;
-          color: #fff;
-          border-radius: 50%;
-          display: inline-block;
-          margin-bottom: 20px;
-        }
-        .text {
-          color: #fff;
-          font-size: 0.7em;
-        }
-
-        &.fill {
-          opacity: 1;
-          .status {
-            background-color: #bf9d7d;
-            border: 1px solid #bf9d7d;
-            color: #fff;
-          }
-        }
-      }
-      .line {
-        flex: 1;
-        height: 1px;
-        background-color: #fff;
-      }
-    }
-    .form {
-      label {
-        color: #fff;
-        font-size: 0.8em;
-        // margin-top: 20px;
-        display: block;
-        // margin-bottom: 10px;
-      }
-      input:not([type='checkbox']),
-      select {
-        background-color: #fff;
-        line-height: 40px;
-        height: 40px;
-        border-radius: 5px;
-        display: block;
-        border: none;
-        width: 100%;
-        // margin-bottom: 5px;
-      }
-
-      .flex {
-        display: flex;
-        input,
-        select {
-          margin-right: 5px;
-          &:last-child {
-            margin-right: 0;
-          }
-        }
-      }
-      .btn {
-        width: 100%;
-        background-color: #ccc;
-        border: none;
-        display: block;
-        height: 40px;
-        line-height: 40px;
-        border-radius: 5px;
-        padding: 0;
-        cursor: pointer;
-        margin-top: 25px;
-        &.yellow {
-          background-color: #bf9d7d;
-          color: #fff;
-        }
-      }
-
-      .read {
-        color: #fff;
-      }
-
-      .has-account {
-        font-size: 0.7em;
-        margin-top: 20px;
-        color: #fff;
-        cursor: default;
-        span {
-          color: #bf9d7d;
-          cursor: pointer;
-        }
-      }
-    }
-  }
+<style lang="scss" scoped>
+::v-deep(.n-form-item-label) {
+  color: #fff;
+}
+::v-deep(.n-checkbox .n-checkbox__label) {
+  color: #fff;
 }
 </style>
