@@ -8,14 +8,12 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
-// https://vitejs.dev/config/
-export default defineConfig(() => {
-  // const baseUrl = command === 'serve' ? 'https://jasmjazz.github.io/typescript-booking-website/' : '';
-  const baseUrl = 'https://jasmjazz.github.io/typescript-booking-website/'
+const INVALID_CHAR_REGEX = /[\x00-\x1F\x7F<>*#"{}|^[\]`;?:&=+$,]/g
+const DRIVE_LETTER_REGEX = /^[a-z]:/i
 
+export default defineConfig(() => {
   return {
-    server: { origin: baseUrl },
-    base: `./`,
+    base: './',
     plugins: [
       vue(),
       vueJsx(),
@@ -43,7 +41,12 @@ export default defineConfig(() => {
         output: {
           chunkFileNames: 'static/js/[name]-[hash].js',
           entryFileNames: 'static/js/[name]-[hash].js',
-          assetFileNames: 'static/[ext]/[name]-[hash].[ext]'
+          assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
+          sanitizeFileName(name) {
+            const match = DRIVE_LETTER_REGEX.exec(name)
+            const driveLetter = match ? match[0] : ''
+            return driveLetter + name.slice(driveLetter.length).replace(INVALID_CHAR_REGEX, '')
+          }
         }
       },
       terserOptions: {
