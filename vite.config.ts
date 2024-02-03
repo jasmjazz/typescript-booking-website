@@ -10,7 +10,7 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './typescript-booking-website/',
+  base: '/typescript-booking-website/',
   plugins: [
     vue(),
     vueJsx(),
