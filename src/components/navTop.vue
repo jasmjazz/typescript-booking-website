@@ -136,6 +136,10 @@ onMounted(() => {
         display: block;
         text-align: center;
       }
+      span {
+        display: block;
+        text-align: center;
+      }
     }
   }
 }
