@@ -5,6 +5,7 @@
         <img src="@/assets/img/logo.png" alt="" />
       </div>
     </nav>
+
     <div class="content-wrap">
       <div class="img-wrap">
         <img src="@/assets/img/register.png" alt="" />
@@ -39,10 +40,10 @@
                 </n-form-item>
               </n-form>
               <div style="margin-top: 20px; margin-bottom: 10px">
-                <n-checkbox size="small" v-model:checked="keepAccount" label="記住帳號" />
+                <n-checkbox size="small" v-model:checked="remember" label="記住帳號" />
               </div>
 
-              <button type="button" class="btn yellow">會員登入</button>
+              <button type="button" class="btn yellow" @click.prevent="login">會員登入</button>
             </template>
 
             <div class="has-account">
@@ -57,9 +58,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import VueCookies from 'vue-cookies'
 import { useNotification, type FormInst } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { apiLogin } from '@/api/user/login'
 
+const cookie: any = VueCookies
 const notification = useNotification()
 const router = useRouter()
 
@@ -69,26 +73,54 @@ type User = {
 }
 
 const currentStep = ref<number>(1)
-const keepAccount = ref(false)
+const remember = ref<boolean>(false)
 
 const user = ref<User>({
   email: '',
   password: ''
 })
 
+// 登入
+function login() {
+  formRef.value?.validate((errors) => {
+    if (errors) {
+      return
+    }
+    apiLogin(user.value).then((response: any) => {
+      if (response.status === 200) {
+        if (remember.value) {
+          localStorage.setItem('remember', user.value.email)
+        } else {
+          localStorage.removeItem('remember')
+        }
+        notification.success({
+          content: '成功',
+          meta: '登入成功',
+          duration: 2000
+        })
+        const token = response.data.token
+        const userName = response.data.result.name
+        cookie.set('TOKEN', token)
+        cookie.set('USER_NAME', userName)
+        router.push({ name: 'room' })
+      }
+    })
+  })
+}
+
 // 欄位驗證
 const formRef = ref<FormInst | null>(null)
 const userRules = ref({
   email: { type: 'email', required: true, message: '格式不正確', trigger: ['input', 'blur'] },
-  password: { type: 'email', required: true, message: '格式不正確', trigger: ['input', 'blur'] }
+  password: { required: true, message: '必填', trigger: ['input', 'blur'] }
 })
 </script>
 
 <style lang="scss" scoped>
-::v-deep(.n-form-item-label) {
+:deep(.n-form-item-label) {
   color: #fff;
 }
-::v-deep(.n-checkbox .n-checkbox__label) {
+:deep(.n-checkbox .n-checkbox__label) {
   color: #fff;
 }
 </style>
