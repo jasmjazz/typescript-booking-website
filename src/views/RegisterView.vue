@@ -359,10 +359,10 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-::v-deep(.n-form-item-label) {
+:deep(.n-form-item-label) {
   color: #fff;
 }
-::v-deep(.n-checkbox .n-checkbox__label) {
+:deep(.n-checkbox .n-checkbox__label) {
   color: #fff;
 }
 </style>
