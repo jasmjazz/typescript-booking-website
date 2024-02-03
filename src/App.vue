@@ -1,21 +1,14 @@
 <template>
-  <n-notification-provider>
-    <RouterView />
-  </n-notification-provider>
+  <n-config-provider :locale="zhTW" :date-locale="dateZhTW">
+    <n-notification-provider>
+      <RouterView />
+    </n-notification-provider>
+  </n-config-provider>
 </template>
 
-<!-- <script setup lang="ts">
+<script setup lang="ts">
+import { zhTW, dateZhTW } from 'naive-ui'
 import { RouterView } from 'vue-router'
-</script> -->
-
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  setup() {
-    return {}
-  }
-})
 </script>
 
 <style lang="scss">
@@ -26,4 +19,8 @@ body {
 * {
   box-sizing: border-box;
 }
+</style>
+
+<style lang="scss">
+@import 'assets/scss/register-page.scss';
 </style>
