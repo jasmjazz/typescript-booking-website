@@ -15,7 +15,7 @@ export default defineConfig(() => {
 
   return {
     server: { origin: baseUrl },
-    base: `/`,
+    base: `./`,
     plugins: [
       vue(),
       vueJsx(),
